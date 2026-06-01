@@ -208,3 +208,7 @@ templates/             ← PDF报告模板
 ## 许可证
 
 MIT License — 可自由使用、修改和分发。
+
+## 致谢
+
+Based on [geo-seo-claude](https://github.com/zubair-trabzada/geo-seo-claude) by Zubair Trabzada (MIT License).
