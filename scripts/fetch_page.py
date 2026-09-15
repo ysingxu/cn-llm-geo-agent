@@ -4,9 +4,11 @@ Fetch and parse web pages for GEO analysis.
 Extracts HTML, text content, meta tags, headers, and structured data.
 """
 
-import sys
+import ipaddress
 import json
 import re
+import socket
+import sys
 from urllib.parse import urljoin, urlparse
 
 try:
@@ -31,6 +33,32 @@ DEFAULT_HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Encoding": "gzip, deflate",
 }
+
+
+def validate_public_http_url(url: str) -> None:
+    """Block internal/private network targets so only public http(s) URLs are fetched."""
+    parsed = urlparse(url)
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError("URL has no hostname")
+    hostname = hostname.lower()
+    if hostname == "localhost" or hostname.endswith((".local", ".internal", ".lan", ".home", ".corp")):
+        raise ValueError(f"Internal hostname blocked: {hostname}")
+    try:
+        addrinfos = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as e:
+        raise ValueError(f"Cannot resolve hostname: {hostname} ({e})")
+    for info in addrinfos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            raise ValueError(f"Internal or reserved network address blocked: {hostname} resolves to {ip}")
 
 
 def fetch_page(url: str, timeout: int = 30) -> dict:
@@ -60,6 +88,12 @@ def fetch_page(url: str, timeout: int = 30) -> dict:
     parsed_url = urlparse(url)
     if parsed_url.scheme not in ("http", "https"):
         result["errors"].append(f"Unsupported URL scheme: {parsed_url.scheme!r}. Only http and https are allowed.")
+        return result
+
+    try:
+        validate_public_http_url(url)
+    except ValueError as e:
+        result["errors"].append(f"Blocked: {e}")
         return result
 
     try:
@@ -230,6 +264,7 @@ def fetch_robots_txt(url: str, timeout: int = 15) -> dict:
     }
 
     try:
+        validate_public_http_url(robots_url)
         response = requests.get(robots_url, headers=DEFAULT_HEADERS, timeout=timeout)
 
         if response.status_code == 200:
@@ -320,6 +355,7 @@ def fetch_llms_txt(url: str, timeout: int = 15) -> dict:
 
     for key, check_url in [("llms_txt", llms_url), ("llms_full_txt", llms_full_url)]:
         try:
+            validate_public_http_url(check_url)
             response = requests.get(
                 check_url, headers=DEFAULT_HEADERS, timeout=timeout
             )
@@ -408,6 +444,7 @@ def crawl_sitemap(url: str, max_pages: int = 50, timeout: int = 15) -> list:
 
     for sitemap_url in sitemap_urls:
         try:
+            validate_public_http_url(sitemap_url)
             response = requests.get(
                 sitemap_url, headers=DEFAULT_HEADERS, timeout=timeout
             )
@@ -420,8 +457,10 @@ def crawl_sitemap(url: str, max_pages: int = 50, timeout: int = 15) -> list:
                     if loc:
                         # Fetch child sitemap
                         try:
+                            child_url = loc.text.strip()
+                            validate_public_http_url(child_url)
                             child_resp = requests.get(
-                                loc.text.strip(),
+                                child_url,
                                 headers=DEFAULT_HEADERS,
                                 timeout=timeout,
                             )
@@ -474,6 +513,11 @@ if __name__ == "__main__":
         pages = crawl_sitemap(target_url)
         data = {"pages": pages, "count": len(pages)}
     elif mode == "blocks":
+        try:
+            validate_public_http_url(target_url)
+        except ValueError as e:
+            print(json.dumps({"url": target_url, "errors": [f"Blocked: {e}"]}, indent=2, default=str))
+            sys.exit(1)
         response = requests.get(target_url, headers=DEFAULT_HEADERS, timeout=30)
         data = extract_content_blocks(response.text)
     elif mode == "full":

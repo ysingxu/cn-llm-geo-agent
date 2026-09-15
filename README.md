@@ -22,21 +22,21 @@
 
 ### Windows（Git Bash）
 ```bash
-git clone https://github.com/lejiazhang/cn-llm-geo-agent.git
+git clone https://github.com/ysingxu/cn-llm-geo-agent.git
 cd cn-llm-geo-agent
 bash install-win.sh
 ```
 
 ### macOS / Linux
 ```bash
-git clone https://github.com/lejiazhang/cn-llm-geo-agent.git
+git clone https://github.com/ysingxu/cn-llm-geo-agent.git
 cd cn-llm-geo-agent
 bash install.sh
 ```
 
 ### 一行安装（macOS / Linux）
 ```bash
-git clone https://github.com/lejiazhang/cn-llm-geo-agent.git && cd cn-llm-geo-agent && bash install.sh
+git clone https://github.com/ysingxu/cn-llm-geo-agent.git && cd cn-llm-geo-agent && bash install.sh
 ```
 
 ### 手动安装

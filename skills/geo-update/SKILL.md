@@ -35,7 +35,7 @@ GEO-SEO工具包安装在 `~/.claude/` 下的以下位置：
 
 ```bash
 TEMP_DIR=$(mktemp -d)
-git clone --depth 1 https://github.com/lejiazhang/cn-llm-geo-agent.git "$TEMP_DIR/repo"
+git clone --depth 1 https://github.com/ysingxu/cn-llm-geo-agent.git "$TEMP_DIR/repo"
 ```
 
 若克隆失败，报告错误并停止。不修改任何已安装文件。

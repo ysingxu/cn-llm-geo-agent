@@ -6,7 +6,7 @@ set -euo pipefail
 # 请在 Git Bash 中运行此脚本，不要使用 PowerShell 或 CMD。
 # ============================================================
 
-REPO_URL="https://github.com/lejiazhang/cn-llm-geo-agent.git"
+REPO_URL="https://github.com/ysingxu/cn-llm-geo-agent.git"
 CLAUDE_DIR="${HOME}/.claude"
 SKILLS_DIR="${CLAUDE_DIR}/skills"
 AGENTS_DIR="${CLAUDE_DIR}/agents"

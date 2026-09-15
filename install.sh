@@ -5,7 +5,7 @@ set -euo pipefail
 # 中国LLM GEO-SEO Claude Code Skill 安装程序 — macOS / Linux
 # ============================================================
 
-REPO_URL="https://github.com/lejiazhang/cn-llm-geo-agent.git"
+REPO_URL="https://github.com/ysingxu/cn-llm-geo-agent.git"
 CLAUDE_DIR="${HOME}/.claude"
 SKILLS_DIR="${CLAUDE_DIR}/skills"
 AGENTS_DIR="${CLAUDE_DIR}/agents"
