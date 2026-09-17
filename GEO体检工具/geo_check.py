@@ -691,7 +691,7 @@ def build_markdown(data):
         v = (page.get("headers") or {}).get(h)
         lines.append("  - {} {}: {}".format("✓" if v else "✗", h, "已配置" if v else "缺失"))
     lines.append("- llms.txt：{}".format("存在" if data["llms"]["llms_txt"]["exists"] else "缺失"))
-    lines.append("- 网站地图：{}".format("{}（约{}页）".format(sitemap_count(data)) if data["sitemap"]["found"] else "未找到"))
+    lines.append("- 网站地图：{}".format("已找到（约 {} 页）".format(data["sitemap"]["count"]) if data["sitemap"]["found"] else "未找到"))
     lines.append("")
     lines.append("## 页面基本信息")
     lines.append("")
