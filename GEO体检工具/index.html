@@ -153,6 +153,14 @@
     background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46;
     border-radius: 12px; padding: 14px 18px; font-size: 14.5px;
   }
+  .legend {
+    margin-top: 14px; background: #f8fafc; border: 1px solid #eef2f7;
+    border-radius: 10px; padding: 13px 16px; font-size: 13.5px;
+    color: #475569; line-height: 1.8;
+  }
+  .legend summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+  .legend ul { margin: 8px 0 2px; padding-left: 18px; }
+  .legend li { margin-bottom: 4px; }
   .actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
 
   footer { color: var(--muted); font-size: 13px; text-align: center; padding: 10px 0 0; }
@@ -221,6 +229,15 @@
         <thead><tr><th>AI 平台</th><th>爬虫</th><th>状态</th></tr></thead>
         <tbody></tbody>
       </table></div>
+      <details class="legend">
+        <summary>❓ 这些状态是什么意思？（点开看说明）</summary>
+        <ul>
+          <li><span class="tag good">✓ 允许 / 未提及 / 默认允许</span> —— 该 AI 爬虫可以正常访问你的网站，无需处理。</li>
+          <li><span class="tag warn">△ 受通配规则约束</span> —— 网站规则（robots.txt）里没有<b>单独点名</b>这个 AI 爬虫，但写了一条对"所有爬虫"生效的通用规则（通配符 <b>*</b>），限制了少数目录（如后台、搜索页）。<b>网站主体内容仍可正常访问，AI 可以引用，属常见正常配置，一般无需处理。</b></li>
+          <li><span class="tag warn">△ 部分屏蔽</span> —— 网站专门为这个爬虫写了规则，屏蔽了部分目录，主体内容仍可访问。</li>
+          <li><span class="tag bad">✗ 被屏蔽 / 被通配规则屏蔽</span> —— 该 AI 爬虫被完全挡在门外，对应的 AI 平台（如豆包、文心一言）将<b>无法引用</b>你的内容，建议尽快放开。</li>
+        </ul>
+      </details>
     </div>
 
     <div class="card">

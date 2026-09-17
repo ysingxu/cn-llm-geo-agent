@@ -681,6 +681,12 @@ def build_markdown(data):
     for tier, (names, label) in ALL_CRAWLERS:
         lines.append("| {} | {}（{}） | {} |".format(tier, label, names[0], crawler_status(data["robots"], names)))
     lines.append("")
+    lines.append("> **状态说明**：")
+    lines.append("> - ✓ 允许 / 未提及 / 默认允许：该 AI 爬虫可以正常访问，无需处理。")
+    lines.append("> - △ 受通配规则约束：robots.txt 未单独点名该爬虫，但存在一条对所有爬虫生效的通用规则（User-agent: *），仅限制少数目录；网站主体内容仍可访问，AI 可正常引用，属常见正常配置。")
+    lines.append("> - △ 部分屏蔽：网站为该爬虫写了专门规则，屏蔽部分目录，主体内容仍可访问。")
+    lines.append("> - ✗ 被屏蔽 / 被通配规则屏蔽：该爬虫被完全禁止访问，对应 AI 平台无法引用你的内容，建议尽快放开。")
+    lines.append("")
     lines.append("## 技术健康")
     lines.append("")
     lines.append("- HTTPS：{}".format("已启用" if page.get("is_https") else "未启用"))
