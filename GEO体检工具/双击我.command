@@ -5,7 +5,7 @@ cd "$(dirname "$0")" || exit 1
 PYTHON_CMD=""
 for cmd in python3 python; do
     if command -v "$cmd" >/dev/null 2>&1; then
-        if "$cmd" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 6) else 1)' 2>/dev/null; then
+        if "$cmd" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 7) else 1)' 2>/dev/null; then
             PYTHON_CMD="$cmd"
             break
         fi
@@ -26,4 +26,7 @@ if [ -z "$PYTHON_CMD" ]; then
     exit 1
 fi
 
-exec "$PYTHON_CMD" geo_check.py
+"$PYTHON_CMD" server.py
+
+echo ""
+read -r -p "程序已结束，按回车键关闭窗口..." _
