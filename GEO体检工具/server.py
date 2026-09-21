@@ -9,7 +9,9 @@ import json
 import os
 import re
 import threading
+import traceback
 import webbrowser
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -17,9 +19,20 @@ import geo_check
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INDEX_PATH = os.path.join(BASE_DIR, "index.html")
+ERROR_LOG = os.path.join(BASE_DIR, "错误日志.txt")
 PORT_RANGE = range(8756, 8776)
 
 SERVER = None
+
+
+def log_error():
+    """把完整报错写入工具文件夹里的 错误日志.txt，方便用户查看和转发。"""
+    try:
+        with open(ERROR_LOG, "a", encoding="utf-8") as f:
+            f.write("\n══════ {} ══════\n".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            f.write(traceback.format_exc())
+    except Exception:
+        pass
 
 
 def build_api_response(data, report_path):
@@ -97,6 +110,21 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        try:
+            self._route_get()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception as e:
+            log_error()
+            try:
+                self._send_json({"ok": False, "errors": [
+                    "程序遇到一个内部问题：{}".format(e),
+                    "详细原因已写入工具文件夹里的「错误日志.txt」，可以打开查看，或把它发给帮你维护工具的人。",
+                ]}, 500)
+            except Exception:
+                pass
+
+    def _route_get(self):
         parsed = urlparse(self.path)
         if parsed.path in ("/", "/index.html"):
             try:
@@ -140,6 +168,21 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json({"ok": False, "errors": ["Not Found"]}, 404)
 
     def do_POST(self):
+        try:
+            self._route_post()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception as e:
+            log_error()
+            try:
+                self._send_json({"ok": False, "errors": [
+                    "程序遇到一个内部问题：{}".format(e),
+                    "详细原因已写入工具文件夹里的「错误日志.txt」。",
+                ]}, 500)
+            except Exception:
+                pass
+
+    def _route_post(self):
         if urlparse(self.path).path == "/api/shutdown":
             self._send_json({"ok": True})
             if SERVER is not None:
@@ -173,6 +216,7 @@ def main():
     print()
     print("  · 使用期间请保持本窗口开着")
     print("  · 用完后点网页里的【退出工具】，或在本窗口按 Control+C")
+    print("  · 如果页面报错，详细原因会写在工具文件夹的「错误日志.txt」里")
     print()
     threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     try:

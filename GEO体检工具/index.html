@@ -331,8 +331,11 @@ function startCheck() {
     $("step-text").textContent = steps[i];
   }, 2200);
 
-  fetch("/api/check?url=" + encodeURIComponent(raw))
-    .then(function (r) { return r.json(); })
+  var controller = new AbortController();
+  var abortTimer = setTimeout(function () { controller.abort(); }, 180000);
+
+  fetch("/api/check?url=" + encodeURIComponent(raw), { signal: controller.signal })
+    .then(function (r) { clearTimeout(abortTimer); return r.json(); })
     .then(function (data) {
       clearInterval(timer);
       $("go").disabled = false;
@@ -342,8 +345,22 @@ function startCheck() {
     })
     .catch(function (e) {
       clearInterval(timer);
+      clearTimeout(abortTimer);
       $("go").disabled = false;
-      showError(["无法连接本地服务（" + e + "）", "请确认后面那个黑色终端窗口还开着。"]);
+      if (e && e.name === "AbortError") {
+        showError([
+          "这个网站响应太慢，等了 3 分钟还没查完，已自动停止。",
+          "可以稍后再试一次；如果反复出现，可能是该网站在当前网络下访问不畅。"
+        ]);
+      } else {
+        showError([
+          "无法连接本地服务（" + e + "）",
+          "请按顺序检查：",
+          "1. 黑色终端窗口是否还开着？关了就重新双击「双击我.command」；",
+          "2. 若窗口开着，请打开工具文件夹里的「错误日志.txt」查看具体原因（可截图发给帮你维护工具的人）；",
+          "3. 都没有的话，关掉黑色窗口，重新双击「双击我.command」再试。"
+        ]);
+      }
     });
 }
 
