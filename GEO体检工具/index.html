@@ -266,7 +266,7 @@
   </section>
 </main>
 
-<footer>GEO 网站体检工具 · <b>v5</b> · 本工具在你的电脑本地运行 · 不上传你的任何数据 · 报告自动保存到「桌面/GEO报告」<br><span class="mini">报错时请检查：页面是否显示 v5（不是则说明在用旧版）；工具文件夹里的「错误日志.txt」</span></footer>
+<footer>GEO 网站体检工具 · <b>v6</b> · 本工具在你的电脑本地运行 · 不上传你的任何数据 · 报告自动保存到「桌面/GEO报告」<br><span class="mini">报错时请检查：页面是否显示 v6（不是则说明在用旧版）；工具文件夹里的「错误日志.txt」</span></footer>
 
 <script>
 var $ = function (id) { return document.getElementById(id); };
@@ -341,7 +341,15 @@ function startCheck() {
       $("go").disabled = false;
       if (!data.ok) { showError(data.errors); return; }
       current = data;
-      render(data);
+      try {
+        render(data);
+      } catch (err) {
+        showError([
+          "结果显示时遇到问题（工具的前端小bug）：" + err,
+          "网站数据其实已经检查完、报告也已保存到「桌面/GEO报告」。",
+          "请把上面这段文字复制发给帮你维护工具的人，便于修复。"
+        ]);
+      }
     })
     .catch(function (e) {
       clearInterval(timer);
@@ -407,13 +415,20 @@ function render(d) {
   items.push([t.is_https ? ["✅", "HTTPS 已启用"] : ["🚫", "HTTPS 未启用（AI 与浏览器的基础信任）"], !t.is_https]);
   items.push([t.ssr_text.indexOf("疑似") >= 0 ? ["⚠️", t.ssr_text] : ["✅", t.ssr_text], t.ssr_text.indexOf("疑似") >= 0]);
   var ld = t.ld_types.length ? ["✅", "结构化数据：" + t.ld_types.join("、")] : ["⚠️", "结构化数据：未发现 JSON-LD（AI 难以识别你的品牌实体）"];
-  items.push(ld);
+  items.push([ld, !t.ld_types.length]);
   var secN = 0;
   for (var k in t.security_headers) { if (t.security_headers[k]) secN++; }
   items.push([secN >= 4 ? ["✅", "安全响应头：" + secN + " / 6 项"] : ["⚠️", "安全响应头：" + secN + " / 6 项（建议补充）"], secN < 4]);
   items.push([t.llms_txt ? ["✅", "llms.txt 已创建"] : ["💡", "llms.txt 缺失（帮助 AI 理解网站的新标准，机会点）"], !t.llms_txt]);
   items.push([t.sitemap_found ? ["✅", "网站地图已找到（约 " + t.sitemap_count + " 个页面）"] : ["⚠️", "网站地图未找到 sitemap.xml"], !t.sitemap_found]);
-  if (t.robots_meta) items.push(["⚠️", "页面 meta robots = " + t.robots_meta + "（可能限制收录）"], true);
+  if (t.robots_meta) {
+    var rm = String(t.robots_meta).toLowerCase();
+    var rBad = rm.indexOf("noindex") >= 0 || rm.indexOf("none") >= 0;
+    items.push([rBad
+      ? ["🚫", "页面 meta robots = " + t.robots_meta + "（包含禁止收录指令，AI/搜索引擎将不收录此页，请尽快检查！）"]
+      : ["ℹ️", "页面 meta robots = " + t.robots_meta + "（允许收录的常规设置，正常）"],
+      rBad]);
+  }
   var grid = "";
   items.forEach(function (it) {
     grid += '<div class="tech-item"><span class="ic">' + it[0][0] + '</span><span>' + esc(it[0][1]) + "</span></div>";
